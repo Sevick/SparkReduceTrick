@@ -10,8 +10,7 @@ import scala.Tuple2;
 
 import java.util.*;
 
-public class SparkVeeva {
-    private static Logger log = Logger.getLogger(SparkVeeva.class.toString());
+public class SparkTrick {
 
     public static void main(String[] args) throws Exception {
 //        String log4jConfigFile = "src/main/resources/log4j.xml";
@@ -28,7 +27,6 @@ public class SparkVeeva {
                 config("spark.master", "local").getOrCreate();
         JavaSparkContext javaSparkContext = new JavaSparkContext(spark.sparkContext());
         javaSparkContext.sc().setLogLevel("WARN");
-        org.apache.log4j.Logger.getLogger("org.apache").setLevel(Level.WARN);
 
         JavaRDD<String> t = javaSparkContext.textFile("streams/src/main/resources/test_keys.csv");
 
