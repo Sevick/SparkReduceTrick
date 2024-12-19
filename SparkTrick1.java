@@ -40,18 +40,15 @@ public class SparkTrick1 {
         logRDD(out, "Output:");
 
         spark.close();
-
     }
 
 
     static public JavaPairRDD<Set<Integer>, Set<String>> groupWords(JavaPairRDD<Set<Integer>, Set<String>> in, boolean log) {
         //logRDD(in, "Input:");
-        JavaPairRDD<String, Set<Integer>> rdd = in.flatMapToPair(tuple -> {
-            List<Tuple2<String, Set<Integer>>> lst = new ArrayList<>(tuple._2().size());
-            Set<String> words = new HashSet<>(tuple._2());
-            tuple._2().forEach(word -> lst.add(new Tuple2<String, Set<Integer>>(word, tuple._1())));
-            return lst.iterator();
-        });
+        JavaPairRDD<String, Set<Integer>> rdd = in.flatMapToPair(tuple ->
+            tuple._2().stream().map(word -> new Tuple2<String, Set<Integer>>(word, tuple._1())).iterator()
+        );
+
         if (log) logRDD(rdd, "rdd:");       // <string, [ids]>
 
         JavaPairRDD<String, Set<Integer>> rdd2 = rdd.reduceByKey((i1, i2) -> {
@@ -63,12 +60,9 @@ public class SparkTrick1 {
 
         JavaPairRDD<Integer, Tuple2<Set<Integer>, Set<String>>> rdd3 = rdd2.flatMapToPair(tuple -> {
             List<Tuple2<Integer, Tuple2<Set<Integer>, Set<String>>>> lst = new ArrayList<>(tuple._2().size());
-            tuple._2().forEach(id -> {
-                Set<String> words = new HashSet();
-                words.add(tuple._1());
-                lst.add(new Tuple2<>(id, new Tuple2<>(tuple._2(), words)));
-            });
-            return lst.iterator();
+            Set<String> words = new HashSet();
+            words.add(tuple._1());
+            return tuple._2().stream().map(id -> new Tuple2<>(id, new Tuple2<>(tuple._2(), words))).iterator();
         });
         if (log) logRDD(rdd3, "rdd3:");      // <id, <[ids], [word]>>
 
