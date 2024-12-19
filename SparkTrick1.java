@@ -66,20 +66,20 @@ public class SparkTrick1 {
         });
         if (log) logRDD(rdd3, "rdd3:");      // <id, <[ids], [word]>>
 
-        JavaPairRDD<Set<Integer>, Set<String>> rdd5 = groupIds(rdd3);
+        JavaPairRDD<Set<Integer>, Set<String>> rdd5 = groupIds(rdd3, log);
         if (log) logRDD(rdd5, "rdd5:");     // <[ids],[words]>
 
         JavaPairRDD<Integer, Tuple2<Set<Integer>, Set<String>>> rdd6 =
                 rdd5.flatMapToPair(tuple -> tuple._1().stream().map(id -> new Tuple2<>(id, new Tuple2<Set<Integer>, Set<String>>(tuple._1(), tuple._2()))).iterator());
 
-        JavaPairRDD<Set<Integer>, Set<String>> rdd7 = groupIds(rdd6);
+        JavaPairRDD<Set<Integer>, Set<String>> rdd7 = groupIds(rdd6, log);
         if (log) logRDD(rdd7, "rdd7:");
 
         return rdd7;
     }
 
 
-    static public JavaPairRDD<Set<Integer>, Set<String>> groupIds(JavaPairRDD<Integer, Tuple2<Set<Integer>, Set<String>>> in) {
+    static public JavaPairRDD<Set<Integer>, Set<String>> groupIds(JavaPairRDD<Integer, Tuple2<Set<Integer>, Set<String>>> in, boolean log) {
         JavaPairRDD<Integer, Tuple2<Set<Integer>, Set<String>>> rdd1 = in.reduceByKey((i1, i2) -> {
             Set<Integer> mergeIds = new HashSet<>(i1._1());
             mergeIds.addAll(i2._1());
@@ -87,7 +87,7 @@ public class SparkTrick1 {
             mergeWords.addAll(i2._2());
             return new Tuple2<>(mergeIds,mergeWords);
         });
-        //if (log) logRDD(rdd1, "groupIds-rdd1:");     // <id, <[ids],[words]>
+        if (log) logRDD(rdd1, "groupIds-rdd1:");     // <id, <[ids],[words]>
 
         JavaPairRDD<Set<Integer>, Set<String>> rdd2 = rdd1
                 .mapToPair(tuple -> new Tuple2<>(tuple._2()._1(), tuple._2()._2()))     // <[ids],[words]>
@@ -96,7 +96,7 @@ public class SparkTrick1 {
                     newSet.addAll(i2);
                     return newSet;
                 });
-        //if (log) logRDD(rdd2, "groupIds-rdd2:");     // <[ids],[words]>
+        if (log) logRDD(rdd2, "groupIds-rdd2:");     // <[ids],[words]>
         return rdd2;
     }
 
